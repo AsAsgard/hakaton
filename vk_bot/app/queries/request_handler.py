@@ -5,8 +5,6 @@ import sys
 import vk_api
 import bs4
 import requests
-import annoy
-import pandas as pd
 from ml_functions.predict import process_data
 from threading import Timer
 from datetime import datetime
@@ -18,11 +16,6 @@ from random import randint
 authorized = set()
 success = 0
 fail = 0
-
-annoy_model = annoy.AnnoyIndex(300)
-annoy_model.load('annoy')
-
-df = pd.read_csv('ProductsDataset.csv')
 
 # Авторизуемся как сообщество
 vk = vk_api.VkApi(token=token)
@@ -97,19 +90,19 @@ def process():
                 failLog()
                 continue
 
-            result = process_data(event.text, annoy_model, df)
+            result = process_data(event.text)
             if not result:
                 write_msg(event.user_id,
                           f"Я не могу понять, что ты мне хочешь сказать, {get_user_name_from_vk_id(event.user_id)}!")
                 failLog()
                 continue
             else:
-                message = f"Вот что я смог найти для тебя, {get_user_name_from_vk_id(event.user_id)}:\n"
+                message = f"Вот что я смог найти для тебя, {get_user_name_from_vk_id(event.user_id)}:\n\n"
                 for element in result:
                     message = "".join([message,
-                                       f"Название: {element.get('title')}; "
-                                       f"Индекс продукта: {element.get('product_id')}; "
-                                       f"Ссылка на картинку:{element.get('image') if element.get('image') else ''}"])
+                                       f"Название: {element.get('title')}; \n"
+                                       f"Индекс продукта: {element.get('product_id')}; \n"
+                                       f"Ссылка на картинку: {element.get('image') if element.get('image') else ''}\n\n"])
                 write_msg(event.user_id, message)
                 successLog()
                 continue
