@@ -1,73 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import sys
-import vk_api
-import bs4
-import requests
 from ml_functions.predict import process_data
-from threading import Timer
-from datetime import datetime
-from app.logger import Logger
-from appconfig import token, SECRET_PHRASE
-from vk_api.longpoll import VkLongPoll, VkEventType
+from appconfig import SECRET_PHRASE
+from vk_api.longpoll import VkEventType
+from app.auxiliary.writers import successLog, failLog, write_msg
+from app.auxiliary.parser import get_user_name_from_vk_id
+from app.vk_vars import vk_a, upload, authorized, longpoll
 from random import randint
-
-authorized = set()
-success = 0
-fail = 0
-
-# Авторизуемся как сообщество
-vk = vk_api.VkApi(token=token)
-
-# Работа с сообщениями
-longpoll = VkLongPoll(vk)
-
-# api
-api = vk.get_api()
-
-def write_msg(user_id, message):
-    vk.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': randint(1, sys.maxsize)})
-
-
-def successLog():
-    Logger.info(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")};Success')
-
-
-def failLog():
-    Logger.info(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")};Fail')
-
-
-def _clean_all_tag_from_str(string_line):
-
-    """
-    Очистка строки stringLine от тэгов и их содержимых
-    :param string_line: Очищаемая строка
-    :return: очищенная строка
-    """
-
-    result = ""
-    not_skip = True
-    for i in list(string_line):
-        if not_skip:
-            if i == "<":
-                not_skip = False
-            else:
-                result += i
-        else:
-            if i == ">":
-                not_skip = True
-
-    return result
-
-
-def get_user_name_from_vk_id(user_id):
-    request = requests.get("https://vk.com/id" + str(user_id))
-    bs = bs4.BeautifulSoup(request.text, "html.parser")
-
-    user_name = _clean_all_tag_from_str(bs.findAll("title")[0])
-
-    return user_name.split()[0]
+import sys
+import requests
 
 
 def process():
@@ -90,19 +32,42 @@ def process():
                 failLog()
                 continue
 
-            result = process_data(event.text)
+            try:
+                result = process_data(event.text)
+            except KeyboardInterrupt:
+                raise
+            except:
+                write_msg(event.user_id,
+                          f"Прости, у меня не получилось найти для тебя подходящий ответ, "
+                          f"{get_user_name_from_vk_id(event.user_id)}((")
+                failLog()
+                continue
             if not result:
                 write_msg(event.user_id,
-                          f"Я не могу понять, что ты мне хочешь сказать, {get_user_name_from_vk_id(event.user_id)}!")
+                          f"Извини, я не смог найти для тебя что-то подходящее, "
+                          f"{get_user_name_from_vk_id(event.user_id)}((")
                 failLog()
                 continue
             else:
-                message = f"Вот что я смог найти для тебя, {get_user_name_from_vk_id(event.user_id)}:\n\n"
+                write_msg(event.user_id, f"Вот что я смог найти для тебя, {get_user_name_from_vk_id(event.user_id)}:")
                 for element in result:
-                    message = "".join([message,
-                                       f"Название: {element.get('title')}; \n"
-                                       f"Индекс продукта: {element.get('product_id')}; \n"
-                                       f"Ссылка на картинку: {element.get('image') if element.get('image') else ''}\n\n"])
-                write_msg(event.user_id, message)
+                    message = f"Название: {element.get('title')}; \n"\
+                              f"Индекс продукта: {element.get('product_id')}; \n"
+                    if element.get('image'):
+                        image = requests.get(element.get('image'), stream=True)
+                        photo = upload.photo_messages(photos=image.raw)[0]
+                        attachment = f"photo{photo['owner_id']}_{photo['id']}"
+                        vk_a.messages.send(
+                            user_id=event.user_id,
+                            attachment=attachment,
+                            message=message,
+                            random_id=randint(-sys.maxsize -1, sys.maxsize)
+                        )
+                    else:
+                        vk_a.messages.send(
+                            user_id=event.user_id,
+                            message=message,
+                            random_id=randint(-sys.maxsize - 1, sys.maxsize)
+                        )
                 successLog()
                 continue
