@@ -1,13 +1,5 @@
-from processing import *
 import pandas as pd
 from annoy import AnnoyIndex
-
-df = pd.read_csv('ProductsDataset.csv')
-df['product_id'] = range(df.shape[0])
-df['image_links'].fillna('nan', inplace=True)
-
-annoy_model = AnnoyIndex(300).load('annoy')
-
 
 
 def get_index(text, annoy_model):
