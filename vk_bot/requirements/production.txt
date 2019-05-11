@@ -7,3 +7,5 @@ pymorphy2
 gensim
 sklearn
 nltk
+numpy
+pandas
