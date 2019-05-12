@@ -6,7 +6,7 @@ from appconfig import SECRET_PHRASE
 from vk_api.longpoll import VkEventType
 from app.auxiliary.writers import successLog, failLog, write_msg
 from app.auxiliary.parser import get_user_name_from_vk_id
-from app.vk_vars import vk_a, upload, authorized, longpoll
+from app.vk_vars import vk_a, upload, authorized, longpoll, vk_got_api
 from random import randint
 import sys
 import requests
