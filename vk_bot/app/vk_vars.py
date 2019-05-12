@@ -12,7 +12,7 @@ authorized = set()
 vk_a = vk_api.VkApi(token=token)
 
 # get api
-vk_got_api = vk_session.get_api()
+vk_got_api = vk_a.get_api()
 
 # Работа с сообщениями
 longpoll = VkLongPoll(vk_a)
