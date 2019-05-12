@@ -14,6 +14,7 @@ import requests
 
 def process():
     # Основной цикл
+    print("Bot started to handle requests")
 
     for event in longpoll.listen():
 
