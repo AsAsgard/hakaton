@@ -58,14 +58,14 @@ def process():
                         image = requests.get(element.get('image'), stream=True)
                         photo = upload.photo_messages(photos=image.raw)[0]
                         attachment = f"photo{photo['owner_id']}_{photo['id']}"
-                        vk_a.messages.send(
+                        vk_got_api.messages.send(
                             user_id=event.user_id,
                             attachment=attachment,
                             message=message,
                             random_id=randint(-sys.maxsize -1, sys.maxsize)
                         )
                     else:
-                        vk_a.messages.send(
+                        vk_got_api.messages.send(
                             user_id=event.user_id,
                             message=message,
                             random_id=randint(-sys.maxsize - 1, sys.maxsize)
