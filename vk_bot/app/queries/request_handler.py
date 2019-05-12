@@ -6,7 +6,7 @@ from appconfig import SECRET_PHRASE
 from vk_api.longpoll import VkEventType
 from app.auxiliary.writers import successLog, failLog, write_msg
 from app.auxiliary.parser import get_user_name_from_vk_id
-from app.vk_vars import vk_a, upload, authorized, longpoll, vk_got_api
+from app.vk_vars import vk_session, upload, authorized, longpoll, vkapi
 from random import randint
 import sys
 import requests
@@ -58,14 +58,14 @@ def process():
                         image = requests.get(element.get('image'), stream=True)
                         photo = upload.photo_messages(photos=image.raw)[0]
                         attachment = f"photo{photo['owner_id']}_{photo['id']}"
-                        vk_got_api.messages.send(
+                        vkapi.messages.send(
                             user_id=event.user_id,
                             attachment=attachment,
                             message=message,
                             random_id=randint(-sys.maxsize -1, sys.maxsize)
                         )
                     else:
-                        vk_got_api.messages.send(
+                        vkapi.messages.send(
                             user_id=event.user_id,
                             message=message,
                             random_id=randint(-sys.maxsize - 1, sys.maxsize)
