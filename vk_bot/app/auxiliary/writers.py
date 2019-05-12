@@ -5,11 +5,11 @@ import sys
 from datetime import datetime
 from app.logger import Logger
 from random import randint
-from app.vk_vars import vk_a
+from app.vk_vars import vk_session
 
 
 def write_msg(user_id, message):
-    vk_a.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': randint(-sys.maxsize -1, sys.maxsize)})
+    vk_session.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': randint(-sys.maxsize -1, sys.maxsize)})
 
 
 def successLog():
